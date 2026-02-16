@@ -1,0 +1,132 @@
+.product-details {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.product-details-header {
+  margin-bottom: 1.5rem;
+}
+
+.back-link {
+  font-size: 0.875rem;
+  color: var(--text-muted, #7c6f80);
+}
+
+.back-link:hover {
+  color: var(--accent, #ec4899);
+}
+
+.product-details-body {
+  background: var(--surface, #ffffff);
+  border-radius: var(--radius, 16px);
+  border: 1px solid var(--border, #f2e8ff);
+  box-shadow: var(--shadow-lg, 0 18px 45px -18px rgba(24, 14, 38, 0.25));
+  padding: 2rem;
+}
+
+.product-details-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.product-details-desc {
+  margin: 0 0 1.25rem;
+  color: var(--text-muted, #7c6f80);
+  font-size: 0.975rem;
+}
+
+.product-details-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.product-details-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent, #ec4899);
+}
+
+.product-details-category {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-soft, rgba(236, 72, 153, 0.08));
+  color: var(--accent, #ec4899);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.product-details-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted, #7c6f80);
+}
+
+.product-details-cta {
+  background: var(--accent, #ec4899);
+  color: #fff;
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-sm, 10px);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.product-details-cta::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.product-details-cta:hover {
+  background: var(--accent-hover, #db2777);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+
+.product-details-cta:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.product-details-cta:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+}
+
+@media (max-width: 640px) {
+  .product-details {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .product-details-body {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .product-details-title {
+    font-size: 1.5rem;
+  }
+
+  .product-details-cta {
+    width: 100%;
+    padding: 1rem 2rem;
+  }
+}
+

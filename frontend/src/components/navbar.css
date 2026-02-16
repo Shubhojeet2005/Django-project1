@@ -1,0 +1,123 @@
+.navbar {
+  background: var(--surface, #ffffff);
+  border-bottom: 1px solid var(--border, #f2e8ff);
+  box-shadow: var(--shadow, 0 1px 3px rgba(24, 14, 38, 0.08));
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.navbar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text, #1f1724);
+  text-decoration: none;
+  background: linear-gradient(135deg, var(--accent, #ec4899) 0%, var(--accent-hover, #db2777) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all 0.3s ease;
+  letter-spacing: -0.02em;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.05);
+  text-decoration: none;
+}
+
+.navbar-cart {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar-cart-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--accent-soft, rgba(236, 72, 153, 0.08));
+  color: var(--accent, #ec4899);
+  border-radius: var(--radius-sm, 10px);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.navbar-cart-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.navbar-cart-link:hover {
+  background: var(--accent, #ec4899);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  text-decoration: none;
+}
+
+.navbar-cart-link:hover::before {
+  left: 100%;
+}
+
+.cart-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 0.5rem;
+  background: var(--accent, #ec4899);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.navbar-cart-link:hover .cart-count {
+  background: #fff;
+  color: var(--accent, #ec4899);
+}
+
+@media (max-width: 640px) {
+  .navbar-container {
+    padding: 0.875rem 1.25rem;
+  }
+
+  .navbar-logo {
+    font-size: 1.25rem;
+  }
+
+  .navbar-cart-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .cart-count {
+    min-width: 20px;
+    height: 20px;
+    font-size: 0.6875rem;
+  }
+}
