@@ -1,10 +1,12 @@
 import { useCart } from "../context/CartContext";
 import "./CartPage.css";
+import { useNavigate } from "react-router-dom";
 
 function CartPage() {
-    const { cartItems, removeFromCart, addToCart, updateCartItem } = useCart();
+    const navigate = useNavigate();
+    const { cartItems, total,removeFromCart, addToCart, updateCartItem } = useCart();
 
-    const totalPrice = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    // const totalPrice = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
 
     const handleDecreaseQuantity = (productId, currentQuantity) => {
         if (currentQuantity > 1) {
@@ -35,62 +37,71 @@ function CartPage() {
             ) : (
                 <div className="cart-content">
                     <div className="cart-items">
-                        {cartItems.map((item) => (
-                            <div key={item.product.id} className="cart-item">
-                                <div className="cart-item-image-wrapper">
-                                    {item.product.image ? (
-                                        <img 
-                                            src={item.product.image} 
-                                            alt={item.product.name}
-                                            className="cart-item-image"
-                                        />
-                                    ) : (
-                                        <div className="cart-item-placeholder">No Image</div>
-                                    )}
-                                </div>
-                                <div className="cart-item-details">
-                                    <h3 className="cart-item-name">{item.product.name}</h3>
-                                    {item.product.description && (
-                                        <p className="cart-item-description">{item.product.description}</p>
-                                    )}
-                                    <p className="cart-item-price">${Number(item.product.price).toFixed(2)}</p>
-                                    <div className="quantity-controls">
-                                        <button 
-                                            className="quantity-btn decrease"
-                                            onClick={() => handleDecreaseQuantity(item.product.id, item.quantity)}
-                                            aria-label="Decrease quantity"
-                                        >
-                                            −
-                                        </button>
-                                        <span className="quantity-value">{item.quantity}</span>
-                                        <button 
-                                            className="quantity-btn increase"
-                                            onClick={() => handleIncreaseQuantity(item.product.id, item.quantity)}
-                                            aria-label="Increase quantity"
-                                        >
-                                            +
-                                        </button>
+                        {cartItems.map((item) => {
+                            const itemId = item.id; // Cart item ID for update operations
+                            const productId = item.product?.id || item.product_id; // Product ID for remove operations
+                            const productName = item.product?.name || item.product_name;
+                            const productPrice = item.product?.price || item.product_price || 0;
+                            const productImage = item.product?.image || item.product_image;
+                            const productDescription = item.product?.description;
+                            
+                            return (
+                                <div key={itemId || productId} className="cart-item">
+                                    <div className="cart-item-image-wrapper">
+                                        {productImage ? (
+                                            <img 
+                                                src={productImage} 
+                                                alt={productName}
+                                                className="cart-item-image"
+                                            />
+                                        ) : (
+                                            <div className="cart-item-placeholder">No Image</div>
+                                        )}
                                     </div>
+                                    <div className="cart-item-details">
+                                        <h3 className="cart-item-name">{productName}</h3>
+                                        {productDescription && (
+                                            <p className="cart-item-description">{productDescription}</p>
+                                        )}
+                                        <p className="cart-item-price">${Number(productPrice).toFixed(2)}</p>
+                                        <div className="quantity-controls">
+                                            <button 
+                                                className="quantity-btn decrease"
+                                                onClick={() => handleDecreaseQuantity(itemId, item.quantity)}
+                                                aria-label="Decrease quantity"
+                                            >
+                                                −
+                                            </button>
+                                            <span className="quantity-value">{item.quantity}</span>
+                                            <button 
+                                                className="quantity-btn increase"
+                                                onClick={() => handleIncreaseQuantity(itemId, item.quantity)}
+                                                aria-label="Increase quantity"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="cart-item-subtotal">
+                                        <p className="subtotal-label">Subtotal</p>
+                                        <p className="subtotal-value">${(Number(productPrice) * item.quantity).toFixed(2)}</p>
+                                    </div>
+                                    <button 
+                                        className="cart-item-remove"
+                                        onClick={() => removeFromCart(productId)}
+                                        aria-label="Remove item"
+                                    >
+                                        ×
+                                    </button>
                                 </div>
-                                <div className="cart-item-subtotal">
-                                    <p className="subtotal-label">Subtotal</p>
-                                    <p className="subtotal-value">${(item.product.price * item.quantity).toFixed(2)}</p>
-                                </div>
-                                <button 
-                                    className="cart-item-remove"
-                                    onClick={() => removeFromCart(item.product.id)}
-                                    aria-label="Remove item"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     <div className="cart-summary">
                         <div className="cart-summary-content">
                             <div className="cart-summary-row">
                                 <span className="summary-label">Subtotal</span>
-                                <span className="summary-value">${totalPrice.toFixed(2)}</span>
+                                <span className="summary-value">${total.toFixed(2)}</span>
                             </div>
                             <div className="cart-summary-row">
                                 <span className="summary-label">Shipping</span>
@@ -99,10 +110,15 @@ function CartPage() {
                             <div className="cart-summary-divider"></div>
                             <div className="cart-summary-row total">
                                 <span className="summary-label">Total</span>
-                                <span className="summary-value">${totalPrice.toFixed(2)}</span>
+                                <span className="summary-value">${total.toFixed(2)}</span>
                             </div>
                         </div>
-                        <button className="checkout-btn">Proceed to Checkout</button>
+                        <button
+                            className="checkout-btn"
+                            onClick={() => navigate("/checkout")}
+                        >
+                            Proceed to Checkout
+                        </button>
                     </div>
                 </div>
             )}

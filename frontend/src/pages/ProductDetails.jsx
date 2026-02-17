@@ -61,7 +61,7 @@ function ProductDetails() {
           )}
           <button
             className="product-details-cta"
-            onClick={() => {addToCart(product);
+            onClick={() => {addToCart(product.id);
             }}
             aria-label={`Add ${product.name} to cart`}
           >
