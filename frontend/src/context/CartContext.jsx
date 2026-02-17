@@ -1,5 +1,5 @@
-import {createContext,useContext,useState,useEffect,useMemo} from "react";
-
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
+import { authFetch, getAccessToken } from "../utils/auth";
 const CartContext=createContext();
 
 export const CartProvider=({children})=>{
@@ -22,18 +22,23 @@ export const CartProvider=({children})=>{
     //Fetch Cart from BE
     const fetchCart= async () => {
         try {
+            const token = getAccessToken();
+
+            // If the user is not authenticated, don't hit protected cart endpoints
+            if (!token) {
+                setCartItems([]);
+                setLoading(false);
+                return;
+            }
+
             if (!baseUrl) {
                 console.error("Base URL not configured");
                 setLoading(false);
                 return;
             }
            
-            const res= await fetch(`${baseUrl}/api/cart/`, {
+            const res= await authFetch(`${baseUrl}/api/cart/`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include', // Include cookies for authentication
             });
             if(!res.ok) {
                 throw new Error("Failed to fetch cart");
@@ -56,18 +61,20 @@ export const CartProvider=({children})=>{
     // Function to add item to cart
     const addToCart= async (product, quantity = 1) => {
         try{
+            const token = getAccessToken();
+            if (!token) {
+                console.warn("Attempted to add to cart without being logged in.");
+                throw new Error("You must be logged in to add items to the cart.");
+            }
+
             if (!baseUrl) {
                 console.error("Base URL not configured");
                 return;
             }
-            const res = await fetch(`${baseUrl}/api/cart/add/`, {
+            const res = await authFetch(`${baseUrl}/api/cart/add/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
                 body: JSON.stringify({
-                    product_id: product.id,
+                    product_id: product.id || product,
                     quantity: quantity
                 })
             });
@@ -88,17 +95,19 @@ export const CartProvider=({children})=>{
     // Remove item from cart
     const removeFromCart= async (productId) => {
         try {
+            const token = getAccessToken();
+            if (!token) {
+                console.warn("Attempted to remove from cart without being logged in.");
+                throw new Error("You must be logged in to remove items from the cart.");
+            }
+
             if (!baseUrl) {
                 console.error("Base URL not configured");
                 return;
             }
            
-            const res = await fetch(`${baseUrl}/api/cart/remove/`, {
+            const res = await authFetch(`${baseUrl}/api/cart/remove/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
                 body: JSON.stringify({
                     product_id: productId
                 })
@@ -129,17 +138,19 @@ export const CartProvider=({children})=>{
     // Update item quantity
     const updateCartItem= async (itemId, quantity) => {
         try {
+            const token = getAccessToken();
+            if (!token) {
+                console.warn("Attempted to update cart without being logged in.");
+                throw new Error("You must be logged in to update items in the cart.");
+            }
+
             if (!baseUrl) {
                 console.error("Base URL not configured");
                 return;
             }
 
-            const res = await fetch(`${baseUrl}/api/cart/update-quantity/`, {
+            const res = await authFetch(`${baseUrl}/api/cart/update-quantity/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
                 body: JSON.stringify({
                     item_id: itemId,
                     quantity: quantity

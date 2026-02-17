@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { authFetch, isAuthenticated } from "../utils/auth";
 import "./CheckoutPage.css";
 
 const CheckoutPage = () => {
@@ -29,6 +30,12 @@ const CheckoutPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!isAuthenticated()) {
+      setError("You must be logged in to place an order.");
+      navigate("/login");
+      return;
+    }
+
     if (!baseUrl) {
       setError("Configuration error: backend URL is not set.");
       return;
@@ -39,12 +46,8 @@ const CheckoutPage = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${baseUrl}/api/orders/create/`, {
+      const res = await authFetch(`${baseUrl}/api/orders/create/`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
         body: JSON.stringify({
           ...form,
           total,

@@ -148,19 +148,7 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# REST Framework settings
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-    # Disable CSRF for API views (handled by CORS)
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
-}
+
 
 # CSRF settings for API
 CSRF_TRUSTED_ORIGINS = [
@@ -171,13 +159,22 @@ CSRF_TRUSTED_ORIGINS = [
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-REST_FRAMEWORK={
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAUthentication'),
-        'DEFAULT_PERMISSION_CLASSES':(
-            'rest_framework.permissions.IsAuthenticated',
-        ),
-    
+REST_FRAMEWORK = {
+    # Use JWT as the primary authentication mechanism,
+    # with SessionAuthentication still available (e.g. for admin/browsable API).
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
+    # By default, require authentication for API views.
+    # Public endpoints explicitly override this with @permission_classes([AllowAny]).
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+    # Render JSON responses by default.
+    "DEFAULT_RENDERER_CLASSES": (
+        "rest_framework.renderers.JSONRenderer",
+    ),
 }
 
 SIMPLE_JWT={

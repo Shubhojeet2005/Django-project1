@@ -1,11 +1,19 @@
 from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from .models import Category, Product,Cart, CartItem,Order,OrderItem
-from rest_framework.decorators import api_view,permission_classes
+from .models import Category, Product, Cart, CartItem, Order, OrderItem, UserProfile
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import CategorySerializer, ProductSerializer,CartSerializer, CartItemSerializer
+from .serializers import (
+    CategorySerializer,
+    ProductSerializer,
+    CartSerializer,
+    CartItemSerializer,
+    UserSerializer,
+    UserRegistrationSerializer,
+    OrderSerializer,
+)
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 
@@ -27,6 +35,7 @@ def get_category(request):
     return JsonResponse(categories, safe=False)
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_product_detail(request, product_id):
     try:
        product=Product.objects.get(id=product_id)
@@ -55,6 +64,7 @@ def get_or_create_session_user(request):
     return user
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_cart(request):
     try:
         user = get_or_create_session_user(request)
@@ -65,6 +75,7 @@ def get_cart(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def add_to_cart(request):
     product_id = request.data.get('product_id')
     quantity = request.data.get('quantity', 1)
@@ -86,6 +97,7 @@ def add_to_cart(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def remove_from_cart(request):
     product_id = request.data.get('product_id')
     try:
@@ -102,6 +114,7 @@ def remove_from_cart(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def update_cart_quantity(request):
     item_id = request.data.get('item_id')
     quantity = request.data.get('quantity')
@@ -126,48 +139,94 @@ def update_cart_quantity(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_order(request):
-    try:
-        name = request.data.get('name')
-        address = request.data.get('address')
-        email = request.data.get('email')
-        payment_method = request.data.get('payment_method', 'COD')
+    data = request.data
+    name = data.get('name')
+    address = data.get('address')
+    phone = data.get('phone')
+    payment_method = data.get('payment_method', 'COD')
 
-        user = get_or_create_session_user(request)
-        cart = Cart.objects.get(user=user)
-
-        if not cart.items.exists():
-            return Response({'error': 'Cart is Empty'}, status=status.HTTP_400_BAD_REQUEST)
-
-        total = sum(float(item.product.price) * item.quantity for item in cart.items.all())
-
-        # Create Order (model requires user, product, quantity, total_price - use first item for required fields)
-        first_item = cart.items.first()
-        order = Order.objects.create(
-            user=user,
-            product=first_item.product,
-            quantity=first_item.quantity,
-            total_price=first_item.quantity * first_item.product.price,
+    # Basic validation
+    if not name or not address or not phone:
+        return Response(
+            {'error': 'Name, address and phone are required.'},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-        # Create Order Items
-        for item in cart.items.all():
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.price,
-            )
+    # Validate phone number
+    if not phone.isdigit() or len(phone) < 10:
+        return Response({'error': 'Invalid phone number'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Clear the cart
-        cart.items.all().delete()
+    # Get the session user (works for both authenticated and anonymous users)
+    user = get_or_create_session_user(request)
 
-        return Response({'message': "Order created successfully", 'order_id': order.id})
-    except Cart.DoesNotExist:
-        return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # Update / create basic profile data
+    UserProfile.objects.update_or_create(
+        user=user,
+        defaults={
+            'address': address,
+            'phone_number': phone,
+        },
+    )
+
+    # Get user's cart
+    cart, created = Cart.objects.get_or_create(user=user)
+    if not cart.items.exists():
+        return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
+
+    created_orders = []
+
+    # Create an Order entry for each cart item
+    for item in cart.items.all():
+        line_total = item.product.price * item.quantity
+        order = Order.objects.create(
+            user=user if user.is_authenticated else None,
+            product=item.product,
+            quantity=item.quantity,
+            total_price=line_total,
+        )
+        created_orders.append(order.id)
+
+    # Clear the cart after creating orders
+    cart.items.all().delete()
+
+    return Response(
+        {
+            'message': 'Order created successfully',
+            'order_ids': created_orders,
+            'payment_method': payment_method,
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def order_history(request):
+    """
+    Return a list of orders for the authenticated user, most recent first.
+    """
+    orders = (
+        Order.objects.filter(user=request.user)
+        .select_related("product")
+        .order_by("-created_at")
+    )
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)
+
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def  register_view
+@permission_classes([AllowAny])
+def register(request):
+    """
+    User registration endpoint (JWT-compatible).
+
+    Allows anonymous users to create an account and returns basic user data.
+    """
+    serializer = UserRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        user_serializer = UserSerializer(user)
+        return Response(user_serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

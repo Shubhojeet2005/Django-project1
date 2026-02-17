@@ -1,18 +1,30 @@
 import "./productCard.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { isAuthenticated } from "../utils/auth";
 
 function ProductCard({ product }) {
   const baseUrl = import.meta.env.VITE_DJANGO_BASE_URL || "";
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const imageSrc = product.image
     ? `${baseUrl.replace(/\/$/, "")}${product.image}`
     : null;
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product);
+    // If the user is not logged in, send them to the login page
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      await addToCart(product);
+    } catch (err) {
+      console.error("Error adding product to cart:", err);
+    }
   };
 
   return (
