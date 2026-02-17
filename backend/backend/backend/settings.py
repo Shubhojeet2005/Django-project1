@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 load_dotenv()
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -169,3 +170,20 @@ CSRF_TRUSTED_ORIGINS = [
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+REST_FRAMEWORK={
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAUthentication'),
+        'DEFAULT_PERMISSION_CLASSES':(
+            'rest_framework.permissions.IsAuthenticated',
+        ),
+    
+}
+
+SIMPLE_JWT={
+    'ACCESS_TOKEN_LIFETIME':timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS':False,
+    'BLACKLIST_AFTER_ROTATION':True,
+    'AUTH_HEADER_TYPES':('Bearer',),
+}

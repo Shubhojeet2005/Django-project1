@@ -2,10 +2,12 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from .models import Category, Product,Cart, CartItem,Order,OrderItem
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CategorySerializer, ProductSerializer,CartSerializer, CartItemSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import status
 
 
 
@@ -165,3 +167,7 @@ def create_order(request):
         return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def  register_view
