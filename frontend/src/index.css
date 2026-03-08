@@ -1,5 +1,7 @@
 /* Reset & base */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -10,20 +12,35 @@ html {
 }
 
 :root {
-  /* Palette inspired by ahn.studio (https://www.shopahnstudio.com/) */
-  --bg: #fdf7f4;
+  /* Ahn Studio Boutique Palette */
+  --bg: #ffffff;
+  /* Crisp white background */
   --surface: #ffffff;
-  --text: #1f1724;
-  --text-muted: #7c6f80;
-  --border: #f2e8ff;
-  --accent: #ec4899;
-  --accent-hover: #db2777;
-  --accent-soft: rgba(236, 72, 153, 0.08);
-  --shadow: 0 1px 3px rgba(24, 14, 38, 0.08);
-  --shadow-lg: 0 18px 45px -18px rgba(24, 14, 38, 0.25);
-  --radius: 16px;
-  --radius-sm: 10px;
-  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --text: #423826;
+  /* Soft dark brownish-grey for elegant text */
+  --text-muted: #8b8070;
+  /* Muted version for secondary text */
+  --border: #f0eae1;
+  /* Very soft warm grey-brown border */
+  --accent: #e6a6a6;
+  /* Dusty Rose */
+  --accent-hover: #d28c8c;
+  --accent-soft: rgba(230, 166, 166, 0.1);
+  --btn-bg: #f3deda;
+  /* Peach/Light Pink for buttons */
+  --btn-text: #423826;
+
+  /* Layout & typography */
+  --shadow: 0 4px 12px rgba(66, 56, 38, 0.04);
+  --shadow-lg: 0 12px 32px rgba(66, 56, 38, 0.08);
+  --radius: 4px;
+  /* Sharper corners for a high-end editorial feel */
+  --radius-sm: 2px;
+
+  /* Font pairings */
+  --font-sans: "Inter", "Figtree", system-ui, -apple-system, sans-serif;
+  --font-serif: "Playfair Display", "Times New Roman", Times, serif;
+  /* Elegant headings */
 }
 
 body {
@@ -83,24 +100,24 @@ html {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
 }
 
 .loading-shimmer {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 0%,
-    #e0e0e0 50%,
-    #f0f0f0 100%
-  );
+  background: linear-gradient(90deg,
+      #f0f0f0 0%,
+      #e0e0e0 50%,
+      #f0f0f0 100%);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite;
 }
 
 /* Smooth transitions for interactive elements */
-a, button {
+a,
+button {
   transition: all 0.2s ease;
 }
 
@@ -109,4 +126,3 @@ button {
   user-select: none;
   -webkit-user-select: none;
 }
-

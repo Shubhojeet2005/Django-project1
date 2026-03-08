@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from .models import Category, Product, Cart, CartItem, Order, OrderItem, UserProfile
+from .models import Category, Product, Cart, CartItem, Order, OrderItem, UserProfile, Payment
+import razorpay
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
@@ -199,6 +200,103 @@ def create_order(request):
         },
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_razorpay_order(request):
+    user = get_or_create_session_user(request)
+    cart = Cart.objects.filter(user=user).first()
+    
+    if not cart or not cart.items.exists():
+        return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    amount = int(cart.total * 100) # Amount in paise
+    currency = getattr(settings, 'RAZORPAY_CURRENCY', 'INR')
+    key_id = getattr(settings, 'RAZORPAY_KEY_ID', '')
+    key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+    
+    razorpay_client = razorpay.Client(auth=(key_id, key_secret))
+    
+    try:
+        razorpay_order = razorpay_client.order.create(dict(amount=amount, currency=currency, payment_capture='0'))
+        return Response({
+            'razorpay_order_id': razorpay_order['id'],
+            'amount': amount,
+            'currency': currency,
+            'key_id': key_id
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_razorpay_payment(request):
+    data = request.data
+    razorpay_order_id = data.get('razorpay_order_id')
+    razorpay_payment_id = data.get('razorpay_payment_id')
+    razorpay_signature = data.get('razorpay_signature')
+    
+    name = data.get('name')
+    address = data.get('address')
+    phone = data.get('phone')
+    
+    try:
+        key_id = getattr(settings, 'RAZORPAY_KEY_ID', '')
+        key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+        razorpay_client = razorpay.Client(auth=(key_id, key_secret))
+        
+        params_dict = {
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        }
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        
+        user = get_or_create_session_user(request)
+        cart = Cart.objects.filter(user=user).first()
+        
+        if not cart or not cart.items.exists():
+            return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        UserProfile.objects.update_or_create(
+            user=user,
+            defaults={'address': address, 'phone_number': phone}
+        )
+        
+        created_orders = []
+        for item in cart.items.all():
+            line_total = item.product.price * item.quantity
+            order = Order.objects.create(
+                user=user if user.is_authenticated else None,
+                product=item.product,
+                quantity=item.quantity,
+                total_price=line_total,
+            )
+            created_orders.append(order.id)
+            
+            Payment.objects.create(
+                order=order,
+                razorpay_order_id=razorpay_order_id,
+                razorpay_payment_id=razorpay_payment_id,
+                razorpay_signature=razorpay_signature,
+                amount=line_total,
+                currency='INR',
+                status='captured'
+            )
+            
+        cart.items.all().delete()
+        
+        return Response({
+            'message': 'Payment successful and order created',
+            'order_ids': created_orders,
+            'payment_method': 'Online Payment'
+        }, status=status.HTTP_201_CREATED)
+        
+    except razorpay.errors.SignatureVerificationError:
+        return Response({'error': 'Invalid Payment Signature'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])

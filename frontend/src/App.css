@@ -6,20 +6,19 @@
 
 .app-shell {
   flex: 1;
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  max-width: 1200px;
-  margin: 0 auto;
   width: 100%;
-  padding: 1.5rem 1rem 2rem;
-  gap: 1.5rem;
+  max-width: 1440px;
+  /* Wider max-width for modern monitors */
+  margin: 0 auto;
+  padding: 0;
+  /* Remove padding for edge-to-edge carousels */
 }
 
 .app-main {
   background: var(--surface);
-  border-radius: 1.25rem;
-  box-shadow: var(--shadow-lg);
-  padding: 1.5rem;
+  /* Removed border radius, blur, and heavy shadow for a clean look */
+  padding: 2rem 5%;
+  /* Fluid horizontal padding */
 }
 
 @media (max-width: 768px) {

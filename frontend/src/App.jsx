@@ -11,11 +11,13 @@ import PrivateRouter from "./components/PrivateRouter";
 import OrderHistory from "./pages/OrderHistory";
 import About from "./pages/About";
 import SidePanel from "./components/SidePanel";
+import SpringLeaves from "./components/SpringLeaves";
 
 function App() {
   return (
     <Router>
       <div className="App">
+        <SpringLeaves />
         <Navbar />
         <div className="app-shell">
           <SidePanel />

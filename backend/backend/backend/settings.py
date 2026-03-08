@@ -137,13 +137,48 @@ STATIC_URL = "static/"
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Razorpay Configuration
+RAZORPAY_KEY_ID = 'rzp_test_SOfGEKdASQ5TJp'
+RAZORPAY_KEY_SECRET = 'hTSYzKUR6ppeFc03uxFA2lVg'
+RAZORPAY_CURRENCY = 'INR'  # Indian Rupees
+
+# ============================================================================
+# RAZORPAY CONFIGURATION - FIXED & IMPROVED
+# ============================================================================
+# CRITICAL: Never hardcode API keys in production!
+# Always use environment variables (.env file)
+
+RAZORPAY_KEY_ID = os.getenv(
+    'RAZORPAY_KEY_ID',
+    'rzp_test_SOfGEKdASQ5TJp'  # Test key - replace with environment variable in production
+)
+
+RAZORPAY_KEY_SECRET = os.getenv(
+    'RAZORPAY_KEY_SECRET',
+    'hTSYzKUR6ppeFc03uxFA2lVg'  # Test secret - replace with environment variable in production
+)
+
+RAZORPAY_CURRENCY = os.getenv('RAZORPAY_CURRENCY', 'INR')
+
+# ============================================================================
+# CORS CONFIGURATION - FIXED
+# ============================================================================
 # CORS settings - must specify exact origins when credentials are included
+
 CORS_ALLOW_ALL_ORIGINS = False
+
+# Allow frontend to communicate with backend
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174",
     "http://localhost:5173",  # Common Vite port
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5173",
 ]
+
+# Allow credentials (cookies, Authorization headers)
 CORS_ALLOW_CREDENTIALS = True
+
+# Allow necessary headers for API requests
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -156,17 +191,41 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+# Allow these HTTP methods
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
 
-
+# ============================================================================
+# CSRF CONFIGURATION - FIXED
+# ============================================================================
 # CSRF settings for API
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5174",
     "http://localhost:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5173",
 ]
 
+# Allow CSRF cookie to be sent with cross-origin requests
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_SAMESITE = 'Lax'  # Allow CSRF token in cross-site requests
+
+# ============================================================================
+# MEDIA FILES
+# ============================================================================
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# ============================================================================
+# REST FRAMEWORK CONFIGURATION
+# ============================================================================
 REST_FRAMEWORK = {
     # Use JWT as the primary authentication mechanism,
     # with SessionAuthentication still available (e.g. for admin/browsable API).
@@ -183,12 +242,80 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
     ),
+    # Pagination
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
 }
 
-SIMPLE_JWT={
-    'ACCESS_TOKEN_LIFETIME':timedelta(minutes=60),
+# ============================================================================
+# JWT CONFIGURATION
+# ============================================================================
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS':False,
-    'BLACKLIST_AFTER_ROTATION':True,
-    'AUTH_HEADER_TYPES':('Bearer',),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# ============================================================================
+# LOGGING CONFIGURATION
+# ============================================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'formatter': 'verbose',
+        },
+        'payment_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'payments.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'store.views': {
+            'handlers': ['console', 'payment_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Create logs directory if it doesn't exist
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
