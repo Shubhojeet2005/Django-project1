@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext.jsx";
 import SidePanel from "./SidePanel";
-import "./Navbar.css";
 
 function Navbar() {
     const { cartItems } = useCart();
