@@ -24,12 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-$0hjr@xpewq0!na3sra&-zba$)*b0+01&y=y_0==im&4k)t#jq"
+# Use environment variable in production; fall back only for local dev.
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-$0hjr@xpewq0!na3sra&-zba$)*b0+01&y=y_0==im&4k)t#jq",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
+# Heroku will inject the app hostname via DJANGO_ALLOWED_HOSTS or you can
+# explicitly set it there (comma-separated). Fallback keeps localhost for dev.
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 
 # Application definition
@@ -49,6 +55,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -128,6 +135,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # CORS settings - must specify exact origins when credentials are included
 CORS_ALLOW_ALL_ORIGINS = False
